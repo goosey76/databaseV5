@@ -34,26 +34,42 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
         Task task = taskList.get(position);
 
+        // Set task title
         holder.textViewTask.setText(task.getTask());
-        holder.textViewDescription.setText(task.getDescription());
 
-        // Handle priority using enums
-        switch (task.getPriority()) {
-            case URGENT_IMPORTANT:
-                holder.textViewPriority.setText(context.getString(R.string.priority_urgent_important));
-                break;
-            case NOT_URGENT_IMPORTANT:
-                holder.textViewPriority.setText(context.getString(R.string.priority_not_urgent_important));
-                break;
-            case URGENT_NOT_IMPORTANT:
-                holder.textViewPriority.setText(context.getString(R.string.priority_urgent_not_important));
-                break;
-            case NOT_URGENT_NOT_IMPORTANT:
-                holder.textViewPriority.setText(context.getString(R.string.priority_not_urgent_not_important));
-                break;
-            default:
-                holder.textViewPriority.setText(context.getString(R.string.priority_unknown));
+        // Set priority
+        holder.textViewPriority.setText("Priorität: " + getPriorityText(task.getPriority()));
+
+        // Set category
+        if (task.getCategory() != null) {
+            holder.textViewCategory.setText("Kategorie: " + task.getCategory().getName());
+            holder.textViewCategory.setVisibility(View.VISIBLE);
+        } else {
+            holder.textViewCategory.setVisibility(View.GONE);
         }
+
+        // Set description
+        if (task.getDescription() != null && !task.getDescription().isEmpty()) {
+            holder.textViewDescription.setText(task.getDescription());
+            holder.textViewDescription.setVisibility(View.VISIBLE);
+        } else {
+            holder.textViewDescription.setVisibility(View.GONE);
+        }
+    }
+    private String getPriorityText(Priority priority) {
+        // Handle priority using enums
+        switch (priority) {
+            case URGENT_IMPORTANT:
+                return "Wichtig & Dringend";
+            case NOT_URGENT_IMPORTANT:
+                return "Wichtig & Nicht Dringend";
+            case URGENT_NOT_IMPORTANT:
+                return "Nicht Wichtig & Dringend";
+            case NOT_URGENT_NOT_IMPORTANT:
+                return "Nicht Wichtig & Nicht Dringend";
+            default:
+                return "Unbekannt";
+         }
     }
 
     @Override
@@ -63,13 +79,14 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
 
     // ViewHolder class for individual items in RecyclerView
     public static class TaskViewHolder extends RecyclerView.ViewHolder {
-        TextView textViewTask, textViewDescription, textViewPriority;
+        TextView textViewTask, textViewCategory, textViewPriority, textViewDescription;
 
         public TaskViewHolder(@NonNull View itemView) {
             super(itemView);
             textViewTask = itemView.findViewById(R.id.textViewTask);
-            textViewDescription = itemView.findViewById(R.id.textViewDescription);
+            textViewCategory = itemView.findViewById(R.id.textViewCategory);
             textViewPriority = itemView.findViewById(R.id.textViewPriority);
+            textViewDescription = itemView.findViewById(R.id.textViewDescription);
         }
     }
 }

@@ -1,6 +1,14 @@
 <resources>
     <string name="app_name">DatenbankV5</string>
 
+    <!-- Categories Array -->
+    <string-array name="category_array">
+        <item>WORK</item>
+        <item>UNIVERSITY</item>
+        <item>HOUSEHOLD</item>
+    </string-array>
+
+
     <!-- Priorities Array -->
     <string-array name="priorities_array">
         <item>Urgent &amp; Important</item>

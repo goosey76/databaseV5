@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.datenbankv5.CloudComponent.RestApiService;
 import com.example.datenbankv5.StorageComponent.TodoData;
 import com.example.datenbankv5.ToDoComponent.AddTaskActivity;
 import com.example.datenbankv5.ToDoComponent.core.Task;
@@ -35,6 +36,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        RestApiService.generateUuid();
 
         // Initalisiere RecyclerView
         recyclerViewTodos = findViewById(R.id.recyclerViewTodos);

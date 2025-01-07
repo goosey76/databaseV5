@@ -4,6 +4,8 @@ import android.util.Log;
 
 import com.example.datenbankv5.ToDoComponent.core.Task;
 
+import java.util.UUID;
+
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -12,11 +14,16 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
+import retrofit2.http.Query;
 
 public class RestApiService {
 
     // Basis-URL der API
     private static final String BASE_URL = "http://10.0.2.2:8080/api/";
+
+    //Harcodierte UUID zur Identifizierung
+    private static final String MY_UUID = String.valueOf(UUID.randomUUID());
+
 
     // Retrofit-Instanz
     private static final Retrofit retrofitInstance = new Retrofit.Builder()
@@ -26,14 +33,15 @@ public class RestApiService {
 
     // API-Schnittstelle
     private interface ApiService {
-        @POST("tasks") // Endpunkt: https://example.com/api/tasks
-        Call<ResponseBody> sendNewToDo(@Body Task task); // Sendet Task-Daten als JSON
+        @POST("tasks") // Endpunkt: http://10.0.2.2:8080/api/tasks
+        Call<ResponseBody> sendNewToDo(@Body Task task, @Query("param") String UUID); // Query-Parameter hinzufügen
     }
 
-    // Methode, die einen boolean zurückgibt
+    // Methode, die den API-Aufruf mit einem Parameter durchführt
     public static void sendNewToDo(Task taskToStore) {
         ApiService apiService = retrofitInstance.create(ApiService.class);
-        Call<ResponseBody> call = apiService.sendNewToDo(taskToStore);
+
+        Call<ResponseBody> call = apiService.sendNewToDo(taskToStore, MY_UUID);
 
         call.enqueue(new Callback<ResponseBody>() {
             @Override
@@ -53,16 +61,5 @@ public class RestApiService {
                 Log.d("CloudService", "Failed to send task: " + t.getMessage());
             }
         });
-        /*
-        try {
-            // Synchronen API-Aufruf durchführen
-            Response<Void> response = call.execute();
-            return response.isSuccessful(); // true bei 2xx, false bei anderen Statuscodes
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false; // Fehlerfall
-        }
-
-         */
     }
 }

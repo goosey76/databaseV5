@@ -37,7 +37,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        RestApiService.generateUuid();
+        RestApiService.deleteUuid(this);
+
+        RestApiService.generateUuid(this);
 
         // Initalisiere RecyclerView
         recyclerViewTodos = findViewById(R.id.recyclerViewTodos);

@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.example.datenbankv5.CloudComponent.MissingUUIDException;
 import com.example.datenbankv5.ToDoComponent.core.Category;
 import com.example.datenbankv5.CloudComponent.RestApiService;
 import com.example.datenbankv5.ToDoComponent.core.Priority;
@@ -118,8 +119,12 @@ public class TodoData extends SQLiteOpenHelper {
             } else {
                 Log.d("DatabaseHelper", "Task inserted successfully");
 
-                //Speichert in Cloud ab
-                RestApiService.sendNewToDo(taskToStore);
+                try {
+                    //Speichert in Cloud ab
+                    RestApiService.sendNewToDo(context, taskToStore);
+                } catch (MissingUUIDException e) {
+                    //TODO behandelung, wenn keine UUID vorhaben ist
+                }
             }
         } finally {
             db.close();

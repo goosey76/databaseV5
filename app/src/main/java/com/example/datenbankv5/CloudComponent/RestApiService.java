@@ -4,6 +4,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+
 import com.example.datenbankv5.CalendarComponent.core.Event;
 import com.example.datenbankv5.ToDoComponent.core.Task;
 
@@ -23,14 +26,29 @@ import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Query;
 
+
+/**
+ * {@code RestApiService} bietet Methoden für die Kommunikation mit einer REST-API.
+ * Es umfasst die Generierung einer UUID, das Hinzufügen, Aktualisieren und Löschen
+ * von Aufgaben und Kalenderereignissen sowie das Teilen und Abrufen von Ereignissen.
+ */
 public class RestApiService {
 
-    // Basis-URL der API
+    /**
+     * Basis-URL der API. Diese URL dient als Einstiegspunkt für alle Endpunkte.
+     */
     private static final String BASE_URL = "http://10.0.2.2:8080/api/";
 
-    // Name und Schlüssel für SharedPreferences
+
+    /**
+     * Name der SharedPreferences, in denen die UUID gespeichert wird.
+     */
     private static final String PREFS_NAME = "CloudPrefs";
+    /**
+     * Schlüssel für die UUID in den SharedPreferences.
+     */
     private static final String PREF_UUID_KEY = "UUID";
+
 
     //Hilfsmethode zum Testen der UUID Registrierung im Backend
     // Methode zum Löschen der gespeicherten UUID
@@ -53,24 +71,27 @@ public class RestApiService {
 
 
 
-    // Retrofit-Instanz
+    /**
+     * Retrofit-Instanz für die Erstellung von API-Anfragen.
+     */
     private static final Retrofit retrofitInstance = new Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create()) // JSON-Converter
             .build();
 
-    // API-Schnittstelle
+
+    /**
+     * Definiert die Endpunkte der REST-API.
+     */
     private interface ApiService {
 
-        //UUID GENERATOR
+    //UUID GENERATOR
         @GET("generate") // Endpunkt: BASE_URL/generate
         Call<ResponseBody> generateUuid(); // GET-Anfrage für UUID
-            //Implementierung: Check
 
-        //TASKS API
+    //TASKS API
         @POST("tasks") // Endpunkt: BASE_URL/tasks
         Call<ResponseBody> sendNewToDo(@Body Task task, @Query("param") String uuid); // POST
-            //Implementierung: Check
 
         @GET("tasks") // Endpunkt: BASE_URL/tasks
         Call<ResponseBody> getAllToDo(@Query("param") String uuid); //GET-Anfrage für alle ToDos in der Cloud
@@ -81,10 +102,9 @@ public class RestApiService {
         @DELETE("tasks") // Endpunkt: BASE_URL/tasks
         Call<ResponseBody> deleteToDoInCloud(@Body String idOfDeletedTask, @Query("param") String uuid); //DELETE-Anfrage, um ToDos aus der Cloud zu löschen, basierend auf ihrer ID
 
-        //CALENDAR API
+    //CALENDAR API
         @POST("calendar") // Endpunkt: BASE_URL/calendar
         Call<ResponseBody> sendNewEvent(@Body Event event, @Query("param") String uuid); // Query-Parameter hinzufügen
-            //Implementierung: Check
 
         @GET("calendar") // Endpunkt: BASE_URL/calendar
         Call<ResponseBody> getAllEvents(@Query("param") String uuid); //GET-Anfrage für alle Events in der Cloud
@@ -95,7 +115,7 @@ public class RestApiService {
         @DELETE("calendar") // Endpunkt: BASE_URL/calendar
         Call<ResponseBody> deleteEventInCloud(@Body String idOfDeletedEvent, @Query("param") String uuid); //DELETE-Anfrage, um ToDos aus der Cloud zu löschen, basierend auf ihrer ID
 
-        //SHARE API
+    //SHARE API
         @POST("share") // Endpunkt: BASE_URL/share
         Call<ResponseBody> sendEventToShare(@Body Event event); //POST-Anfrage, um Event in öffentliche Datenbank zum teilen zu speichern
             //Implementierung: Check
@@ -105,7 +125,11 @@ public class RestApiService {
     }
 
 //GENERATE IMPLEMENTIERUNG
-    // GET-Methode zum Abrufen der UUID vom /generate-Endpunkt
+    /**
+     * Generiert eine UUID, falls diese noch nicht existiert, und speichert sie in den SharedPreferences.
+     *
+     * @param context Der Kontext, der für den Zugriff auf SharedPreferences benötigt wird.
+     */
     public static void generateUuid(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         String existingUuid = sharedPreferences.getString(PREF_UUID_KEY, null);
@@ -150,7 +174,13 @@ public class RestApiService {
 
 
 //TASKS IMPLEMENTIERUNG
-    //POST an BASE_URL/tasks sendet
+    /**
+     * Sendet eine neue Task an die Cloud.
+     *
+     * @param context Der Kontext, der für den Zugriff auf SharedPreferences benötigt wird.
+     * @param taskToStore Die zu speichernde Aufgabe.
+     * @throws MissingUUIDException Wenn keine UUID vorhanden ist.
+     */
     public static void sendNewToDo(Context context, Task taskToStore) throws MissingUUIDException {
         SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         String uuid = sharedPreferences.getString(PREF_UUID_KEY, null);
@@ -183,13 +213,22 @@ public class RestApiService {
         });
     }
 
-    //GET von BASE_URL/tasks TODO Rückgabe
-    public static List<Task> getAllToDo(Context context) throws MissingUUIDException {
+    /**
+     * Ruft alle Tasks aus der Cloud ab.
+     *
+     * @param context Der Kontext, der für den Zugriff auf SharedPreferences benötigt wird.
+     * @return Eine LiveData-Liste mit den Aufgaben aus der Cloud.
+     * @throws MissingUUIDException Wenn keine UUID vorhanden ist.
+     */
+    public static LiveData<List<Task>> getAllToDo(Context context) throws MissingUUIDException {
+        MutableLiveData<List<Task>> taskLiveData = new MutableLiveData<>();
+
         SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         String uuid = sharedPreferences.getString(PREF_UUID_KEY, null);
 
         if (uuid == null) {
             Log.d("CloudService", "UUID not found. Generate UUID first.");
+            taskLiveData.postValue(null);
             throw new MissingUUIDException("keine Bekannte UUID: Kein Cloudaufruf möglich");
         }
 
@@ -199,57 +238,38 @@ public class RestApiService {
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if (response.isSuccessful()) {
-                    //TODO Antwort der Cloud richtig speichern und irgendwie zurückgeben und TASKs richtig einlesen (Problem sind die setzung der Enums)
-
-                    /*
+                if (response.isSuccessful() && response.body() != null) {
                     try {
-                        String responseBody = response.body().string();
-                        List<Task> tasks = parseTasksFromJson(responseBody);
-                        callback.onSuccess(tasks);
-                    } catch (IOException e) {
-                        callback.onError(e.getMessage());
+                        String jsonResponse = response.body().string();
+                        List<Task> tasks = ResponseParser.parseTaskList(jsonResponse);
+                        taskLiveData.postValue(tasks);
+                        Log.d("CloudService", "All Tasks successfully retrieved and saved");
+                    } catch (Exception e) {
+                        Log.e("CloudService", "Error parsing Tasks: " + e.getMessage());
+                        taskLiveData.postValue(null);
                     }
-
-                    // Callback-Interface
-                        public interface ToDoCallback {
-                            void onSuccess(List<Task> tasks);
-                            void onError(String errorMessage);
-                        }
-
-
-                    //Verwendung
-
-                getAllToDo(context, new ToDoCallback() {
-                    @Override
-                    public void onSuccess(List<Task> tasks) {
-                        // Hier kannst du die Liste verwenden
-                    }
-
-                    @Override
-                    public void onError(String errorMessage) {
-                        // Fehler behandeln
-                    }
-                });
-                     */
-
-
-                    Log.d("CloudService", "All Tasks successfully retrieved and saved");
                 } else {
                     Log.d("CloudService", "Error retrieving all Tasks: " + response.message());
+                    taskLiveData.postValue(null);
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
                 Log.d("CloudService", "Failed to retrieve all Tasks: " + t.getMessage());
+                taskLiveData.postValue(null);
             }
         });
-        //TODO
-        return java.util.Collections.emptyList();
+        return taskLiveData;
     }
 
-    //PUT von BASE_URL/tasks
+    /**
+     * Sendet eine aktualisierte Task an die Cloud
+     *
+     * @param context Der Kontext, der für den Zugriff auf SharedPreferences benötigt wird.
+     * @param updatedTask Die zu aktualisierende Task.
+     * @throws MissingUUIDException Wenn keine UUID vorhanden ist.
+     */
     public static void updateToDoInCloud(Context context, Task updatedTask) throws MissingUUIDException {
         SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         String uuid = sharedPreferences.getString(PREF_UUID_KEY, null);
@@ -282,7 +302,13 @@ public class RestApiService {
         });
     }
 
-    //DELETE von BASE_URL/tasks
+    /**
+     * Löscht eine Task aus der Cloud
+     *
+     * @param context Der Kontext, der für den Zugriff auf SharedPreferences benötigt wird.
+     * @param taskToDelete Die zu löschende Task.
+     * @throws MissingUUIDException Wenn keine UUID vorhanden ist.
+     */
     public static void deleteToDoInCloud(Context context, Task taskToDelete) throws MissingUUIDException {
         SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         String uuid = sharedPreferences.getString(PREF_UUID_KEY, null);
@@ -318,7 +344,13 @@ public class RestApiService {
 
 
 //CALENDER IMPLEMENTIERUNG
-    //POST an BASE_URL/calendar sendet
+
+    /**
+     * Sendet ein neues Event an die Cloud.
+     *
+     * @param context Der Kontext, der für den Zugriff auf SharedPreferences benötigt wird.
+     * @param eventToStore Das zu speichernde Event
+     */
     public static void sendNewEvent(Context context, Event eventToStore) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         String uuid = sharedPreferences.getString(PREF_UUID_KEY, null);
@@ -351,14 +383,22 @@ public class RestApiService {
         });
     }
 
-    //GET von BASE_URL/calendar TODO Rückgabe
-    public static List<Task> getAllEvents(Context context) throws MissingUUIDException {
+    /**
+     * Rudt alle Events aus der Cloud ab
+     *
+     * @param context Der Kontext, der für den Zugriff auf SharedPreferences benötigt wird.
+     * @return Eine LiveData-Liste mit den Events aus der Cloud
+     */
+    public static LiveData<List<Event>> getAllEvents(Context context) {
+        MutableLiveData<List<Event>> eventsLiveData = new MutableLiveData<>();
+
         SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         String uuid = sharedPreferences.getString(PREF_UUID_KEY, null);
 
         if (uuid == null) {
             Log.d("CloudService", "UUID not found. Generate UUID first.");
-            throw new MissingUUIDException("keine Bekannte UUID: Kein Cloudaufruf möglich");
+            eventsLiveData.postValue(null);
+            return eventsLiveData;
         }
 
         ApiService apiService = retrofitInstance.create(ApiService.class);
@@ -367,56 +407,38 @@ public class RestApiService {
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if (response.isSuccessful()) {
-                    //TODO Antwort der Cloud richtig speichern und irgendwie zurückgeben und TASKs richtig einlesen (Problem sind die setzung der Enums)
-
-                    /*
+                if (response.isSuccessful() && response.body() != null) {
                     try {
-                        String responseBody = response.body().string();
-                        List<Task> tasks = parseTasksFromJson(responseBody);
-                        callback.onSuccess(tasks);
-                    } catch (IOException e) {
-                        callback.onError(e.getMessage());
+                        String jsonResponse = response.body().string();
+                        List<Event> events = ResponseParser.parseEventList(jsonResponse);
+                        eventsLiveData.postValue(events);
+                        Log.d("CloudService", "All Events successfully retrieved");
+                    } catch (Exception e) {
+                        Log.e("CloudService", "Error parsing Events: " + e.getMessage());
+                        eventsLiveData.postValue(null);
                     }
-
-                    // Callback-Interface
-                        public interface ToDoCallback {
-                            void onSuccess(List<Task> tasks);
-                            void onError(String errorMessage);
-                        }
-
-
-                    //Verwendung
-
-                getAllToDo(context, new ToDoCallback() {
-                    @Override
-                    public void onSuccess(List<Task> tasks) {
-                        // Hier kannst du die Liste verwenden
-                    }
-
-                    @Override
-                    public void onError(String errorMessage) {
-                        // Fehler behandeln
-                    }
-                });
-                     */
-
-
-                    Log.d("CloudService", "All Tasks successfully retrieved and saved");
                 } else {
-                    Log.d("CloudService", "Error retrieving all Tasks: " + response.message());
+                    Log.d("CloudService", "Error retrieving all Events: " + response.message());
+                    eventsLiveData.postValue(null);
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Log.d("CloudService", "Failed to retrieve all Tasks: " + t.getMessage());
+                Log.d("CloudService", "Failed to retrieve all Events: " + t.getMessage());
+                eventsLiveData.postValue(null);
             }
         });
-        return java.util.Collections.emptyList();
+        return eventsLiveData;
     }
 
-    //PUT von BASE_URL/tasks
+    /**
+     * Sendet ein aktualisiertes Event an die Cloud
+     *
+     * @param context Der Kontext, der für den Zugriff auf SharedPreferences benötigt wird.
+     * @param updatedEvent Das zu aktualisierende Event.
+     * @throws MissingUUIDException Wenn keine UUID vorhanden ist.
+     */
     public static void updateEventInCloud(Context context, Event updatedEvent) throws MissingUUIDException {
         SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         String uuid = sharedPreferences.getString(PREF_UUID_KEY, null);
@@ -449,7 +471,13 @@ public class RestApiService {
         });
     }
 
-    //DELETE von BASE_URL/calendar
+    /**
+     * Löscht ein Event aus der Cloud
+     *
+     * @param context Der Kontext, der für den Zugriff auf SharedPreferences benötigt wird.
+     * @param eventToDelete Das zu löschende Event.
+     * @throws MissingUUIDException Wenn keine UUID vorhanden ist.
+     */
     public static void deleteEventInCloud(Context context, Event eventToDelete) throws MissingUUIDException {
         SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         String uuid = sharedPreferences.getString(PREF_UUID_KEY, null);
@@ -484,7 +512,12 @@ public class RestApiService {
 
 
 //SHARE IMPLEMENTIERUNG
-    //POST an BASE_URL/share sendet
+
+    /**
+     * Sendet ein Event an den /share Endpunkt, der dort dann vom Empfänger wieder extrahiert werden kann
+     *
+     * @param eventToShare Das Event, welches geteilt werden soll
+     */
     public static void sendEventToShare(Event eventToShare) {
         ApiService apiService = retrofitInstance.create(ApiService.class);
         Call<ResponseBody> call = apiService.sendEventToShare(eventToShare);
@@ -509,29 +542,42 @@ public class RestApiService {
         });
     }
 
-    //GET von BASE_URL/share TODO Rückgabe
-    public static Event getSharedEvent(String idOfSharedEvent) {
+    /**
+     * Extrahiert ein Event aus der Cloud basierend auf dessen ID
+     *
+     * @param idOfSharedEvent ID des Events, welches heruntergeladen werden soll
+     * @return Ein LiveData welches die Rückgabe der Cloud zurück gibt
+     */
+    public static LiveData<Event> getSharedEvent(String idOfSharedEvent) {
+        //Hilfsklasse zum aynchronen Zurückgeben von CloudRückmeldungen
+        MutableLiveData<Event> eventLiveData = new MutableLiveData<>();
         ApiService apiService = retrofitInstance.create(ApiService.class);
         Call<ResponseBody> call = apiService.getSharedEvent(idOfSharedEvent);
 
         call.enqueue(new Callback<ResponseBody>() {
+
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if (response.isSuccessful()) {
-                   //TODO Event aus des Body erstellen und zurückgeben
-
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        Event event = ResponseParser.parseEvent(response.body().string());
+                        eventLiveData.postValue(event);
+                    } catch (Exception e) {
+                        Log.e("CloudService", "Error parsing response: " + e.getMessage());
+                    }
                     Log.d("CloudService", "Shared Event successfully retrieved");
                 } else {
                     Log.d("CloudService", "Error retrieving SharedEvent: " + response.message());
+                    eventLiveData.postValue(null);
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
                 Log.d("CloudService", "Error retrieving SharedEvent: " + t.getMessage());
+                eventLiveData.postValue(null);
             }
         });
-        //TODO
-        return null;
+        return eventLiveData;
     }
 }

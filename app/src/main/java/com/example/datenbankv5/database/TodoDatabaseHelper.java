@@ -7,9 +7,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import com.example.datenbankv5.Category;
-import com.example.datenbankv5.Priority;
-import com.example.datenbankv5.Task;
+import com.example.datenbankv5.ToDoComponent.core.Priority;
+import com.example.datenbankv5.ToDoComponent.core.Task;
+import com.example.datenbankv5.ToDoComponent.core.Category;
 
 import java.io.File;
 import java.io.FileInputStream;

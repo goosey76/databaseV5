@@ -48,6 +48,7 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     androidTestImplementation(libs.core.testing)
     implementation("com.fasterxml.jackson.core:jackson-databind:2.13.1")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
 
 }

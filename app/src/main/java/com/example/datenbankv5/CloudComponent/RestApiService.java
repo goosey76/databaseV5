@@ -2,16 +2,26 @@ package com.example.datenbankv5.CloudComponent;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.util.Log;
 
+import androidx.annotation.RequiresApi;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.datenbankv5.CalendarComponent.core.Event;
+import com.example.datenbankv5.CloudComponent.ParsingAndSerializer.DurationDeserializer;
+import com.example.datenbankv5.CloudComponent.ParsingAndSerializer.DurationSerializer;
+import com.example.datenbankv5.CloudComponent.ParsingAndSerializer.LocalDateTimeDeserializer;
+import com.example.datenbankv5.CloudComponent.ParsingAndSerializer.LocalDateTimeSerializer;
+import com.example.datenbankv5.CloudComponent.ParsingAndSerializer.ResponseParser;
 import com.example.datenbankv5.ToDoComponent.core.Task;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import okhttp3.ResponseBody;
@@ -33,6 +43,7 @@ import retrofit2.http.Query;
  * Es umfasst die Generierung einer UUID, das Hinzufügen, Aktualisieren und Löschen
  * von Aufgaben und Kalenderereignissen sowie das Teilen und Abrufen von Ereignissen.
  */
+@RequiresApi(api = Build.VERSION_CODES.O)
 public class RestApiService {
 
     /**
@@ -50,6 +61,11 @@ public class RestApiService {
      */
     private static final String PREF_UUID_KEY = "UUID";
 
+
+    public static String getUUid (Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return sharedPreferences.getString(PREF_UUID_KEY, null);
+    }
 
     //Hilfsmethode zum Testen der UUID Registrierung im Backend
     // Methode zum Löschen der gespeicherten UUID
@@ -70,15 +86,30 @@ public class RestApiService {
         }
     }
 
-
-
     /**
      * Retrofit-Instanz für die Erstellung von API-Anfragen.
      */
     public static final Retrofit retrofitInstance = new Retrofit.Builder()
             .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create()) // JSON-Converter
+            .addConverterFactory(createGsonConverterFactory()) // JSON-Converter
             .build();
+
+    /**
+     * Erstellt und gibt den benutzerdefinierten Gson-Converter zurück, der den LocalDateTimeSerializer beinhaltet.
+     */
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private static GsonConverterFactory createGsonConverterFactory() {
+            // Erstelle einen GsonBuilder und registriere den LocalDateTimeSerializer
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeSerializer()) // Serializer für LocalDateTime
+                    .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeDeserializer()) //Deserializer für LocalDateTime
+                    .registerTypeAdapter(Duration.class, new DurationSerializer()) // Duration serialisieren
+                    //.registerTypeAdapter(Duration.class, new DurationDeserializer()) // Duration deserialisieren
+                    .create();
+        // Gebe den GsonConverterFactory mit dem benutzerdefinierten Gson zurück
+        return GsonConverterFactory.create(gson);
+    }
+
 
 
     /**
@@ -101,7 +132,7 @@ public class RestApiService {
         Call<ResponseBody> sendUpdatedTodo(@Body Task task, @Query("param") String uuid); //PUT-Anfrage, um existierenden ToDos zu aktualisieren
 
         @DELETE("tasks") // Endpunkt: BASE_URL/tasks
-        Call<ResponseBody> deleteToDoInCloud(@Body String idOfDeletedTask, @Query("param") String uuid); //DELETE-Anfrage, um ToDos aus der Cloud zu löschen, basierend auf ihrer ID
+        Call<ResponseBody> deleteToDoInCloud(@Query("idOfDeletedTask") String idOfDeletedTask, @Query("paramUuid") String uuid); //DELETE-Anfrage, um ToDos aus der Cloud zu löschen, basierend auf ihrer ID
 
     //CALENDAR API
         @POST("calendar") // Endpunkt: BASE_URL/calendar
@@ -114,14 +145,14 @@ public class RestApiService {
         Call<ResponseBody> sendUpdatedEvent(@Body Event event, @Query("param") String uuid); //PUT-Anfrage, um existierende Events zu aktualisieren
 
         @DELETE("calendar") // Endpunkt: BASE_URL/calendar
-        Call<ResponseBody> deleteEventInCloud(@Body String idOfDeletedEvent, @Query("param") String uuid); //DELETE-Anfrage, um ToDos aus der Cloud zu löschen, basierend auf ihrer ID
+        Call<ResponseBody> deleteEventInCloud(@Query("idOfDeletedEvent") String idOfDeletedEvent, @Query("param") String uuid); //DELETE-Anfrage, um ToDos aus der Cloud zu löschen, basierend auf ihrer ID
 
     //SHARE API
         @POST("share") // Endpunkt: BASE_URL/share
         Call<ResponseBody> sendEventToShare(@Body Event event); //POST-Anfrage, um Event in öffentliche Datenbank zum teilen zu speichern
             //Implementierung: Check
         @GET("share") // Endpunkt: BASE_URL/share
-        Call<ResponseBody> getSharedEvent(@Body String idOfSharedEvent); //GET-Anfrage, um Event aus der öffentlichen Datenbank zu holen, basierend auf der ID des Events
+        Call<ResponseBody> getSharedEvent(@Query("param") String idOfSharedEvent); //GET-Anfrage, um Event aus der öffentlichen Datenbank zu holen, basierend auf der ID des Events
 
     }
 
@@ -489,7 +520,7 @@ public class RestApiService {
         }
 
         ApiService apiService = retrofitInstance.create(ApiService.class);
-        Call<ResponseBody> call = apiService.deleteEventInCloud(eventToDelete.getEvent_ID(), uuid);
+        Call<ResponseBody> call = apiService.deleteEventInCloud(eventToDelete.getEventId(), uuid);
 
         call.enqueue(new Callback<ResponseBody>() {
             @Override
@@ -521,16 +552,8 @@ public class RestApiService {
      */
     public static void sendEventToShare(Event eventToShare) {
 
-        // Serialisieren des eventToStore Objekts in JSON
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            String eventJson = objectMapper.writeValueAsString(eventToShare);
-            Log.d("CloudService", "Sending Event: " + eventJson); // Hier wird das JSON im Log ausgegeben
-        } catch (Exception e) {
-            Log.d("CloudService", "Error serializing event: " + e.getMessage());
-        }
-
         ApiService apiService = retrofitInstance.create(ApiService.class);
+        Log.d("EventToSend", "Event ID: " + eventToShare.getEventId());
         Call<ResponseBody> call = apiService.sendEventToShare(eventToShare);
 
         call.enqueue(new Callback<ResponseBody>() {

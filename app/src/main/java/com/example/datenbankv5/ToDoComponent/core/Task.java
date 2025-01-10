@@ -1,5 +1,7 @@
 package com.example.datenbankv5.ToDoComponent.core;
 
+import android.icu.util.ULocale;
+
 public class Task {
 
     private String id;
@@ -22,6 +24,10 @@ public class Task {
 
     public String getTask() {
         return task;
+    }
+
+    public void setTask(String task) {
+        this.task = task;
     }
 
     public Category getCategory() {

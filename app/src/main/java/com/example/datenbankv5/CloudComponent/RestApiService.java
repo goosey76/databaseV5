@@ -9,6 +9,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.example.datenbankv5.CalendarComponent.core.Event;
 import com.example.datenbankv5.ToDoComponent.core.Task;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.List;
@@ -74,7 +75,7 @@ public class RestApiService {
     /**
      * Retrofit-Instanz für die Erstellung von API-Anfragen.
      */
-    private static final Retrofit retrofitInstance = new Retrofit.Builder()
+    public static final Retrofit retrofitInstance = new Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create()) // JSON-Converter
             .build();
@@ -83,7 +84,7 @@ public class RestApiService {
     /**
      * Definiert die Endpunkte der REST-API.
      */
-    private interface ApiService {
+    public interface ApiService {
 
     //UUID GENERATOR
         @GET("generate") // Endpunkt: BASE_URL/generate
@@ -519,6 +520,16 @@ public class RestApiService {
      * @param eventToShare Das Event, welches geteilt werden soll
      */
     public static void sendEventToShare(Event eventToShare) {
+
+        // Serialisieren des eventToStore Objekts in JSON
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String eventJson = objectMapper.writeValueAsString(eventToShare);
+            Log.d("CloudService", "Sending Event: " + eventJson); // Hier wird das JSON im Log ausgegeben
+        } catch (Exception e) {
+            Log.d("CloudService", "Error serializing event: " + e.getMessage());
+        }
+
         ApiService apiService = retrofitInstance.create(ApiService.class);
         Call<ResponseBody> call = apiService.sendEventToShare(eventToShare);
 

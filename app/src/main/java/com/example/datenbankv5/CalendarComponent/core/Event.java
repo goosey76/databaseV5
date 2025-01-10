@@ -3,6 +3,7 @@ package com.example.datenbankv5.CalendarComponent.core;
 import com.example.datenbankv5.ToDoComponent.core.Category;
 
 import java.time.Duration;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 

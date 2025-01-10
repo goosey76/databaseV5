@@ -183,7 +183,7 @@ public class ResponseParser {
                         ? json.getString("description")
                         : null;
                 Priority priority = json.has("priority") && !json.isNull("priority")
-                        ? Priority.fromValue(Integer.parseInt(json.getString("priority")))
+                        ? Priority.valueOf(json.getString("priority"))
                         : null;
 
                 // Erstelle ein Task-Objekt und füge es zur Liste hinzu

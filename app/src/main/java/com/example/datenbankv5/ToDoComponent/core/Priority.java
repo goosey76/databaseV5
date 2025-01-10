@@ -1,4 +1,4 @@
-package com.example.datenbankv5;
+package com.example.datenbankv5.ToDoComponent.core;
 
 public enum Priority {
     URGENT_IMPORTANT(1),

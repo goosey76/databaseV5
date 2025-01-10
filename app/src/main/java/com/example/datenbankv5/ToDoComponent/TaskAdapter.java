@@ -1,4 +1,4 @@
-package com.example.datenbankv5;
+package com.example.datenbankv5.ToDoComponent;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -8,6 +8,10 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.datenbankv5.R;
+import com.example.datenbankv5.ToDoComponent.core.Priority;
+import com.example.datenbankv5.ToDoComponent.core.Task;
 
 import java.util.List;
 

@@ -16,7 +16,11 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.datenbankv5.database.TodoDatabaseHelper;
+import com.example.datenbankv5.CloudComponent.RestApiService;
+import com.example.datenbankv5.StorageComponent.TodoData;
+import com.example.datenbankv5.ToDoComponent.AddTaskActivity;
+import com.example.datenbankv5.ToDoComponent.core.Task;
+import com.example.datenbankv5.ToDoComponent.TaskAdapter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -26,12 +30,16 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerViewTodos;
     private TaskAdapter taskAdapter;
     private List<Task> taskList;
-    private TodoDatabaseHelper dbHelper; // Database helper
+    private TodoData dbHelper; // Database helper
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        RestApiService.deleteUuid(this);
+
+        RestApiService.generateUuid(this);
 
         // Initalisiere RecyclerView
         recyclerViewTodos = findViewById(R.id.recyclerViewTodos);
@@ -43,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerViewTodos.setAdapter(taskAdapter);
 
         // initialize database helper
-        dbHelper = new TodoDatabaseHelper(this);
+        dbHelper = new TodoData(this);
 
         // Exportiere die Datenbank nach jedem App-Start
         if (checkPermissions()) {

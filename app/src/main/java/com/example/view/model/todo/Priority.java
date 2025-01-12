@@ -1,4 +1,4 @@
-package com.example.datenbankv5;
+package com.example.view.model.todo;
 
 public enum Priority {
     URGENT_IMPORTANT(1),

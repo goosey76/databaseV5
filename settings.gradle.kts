@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "DatenbankV5"
+rootProject.name = "View"
 include(":app")
  

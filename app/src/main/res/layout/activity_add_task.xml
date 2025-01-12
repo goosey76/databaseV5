@@ -12,6 +12,15 @@
         android:hint="Aufgabe"
         android:minHeight="48dp" />
 
+    <Spinner
+        android:id="@+id/spinner_category"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:entries="@array/category_array" />
+
+
     <!-- Priority Spinner -->
     <Spinner
         android:id="@+id/spinner_priority"
@@ -20,6 +29,7 @@
         android:entries="@array/priorities_array"
         android:spinnerMode="dropdown"
         android:layout_marginBottom="8dp" />
+
 
 
     <EditText

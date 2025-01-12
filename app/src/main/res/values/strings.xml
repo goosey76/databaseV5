@@ -1,5 +1,16 @@
 <resources>
-    <string name="app_name">DatenbankV5</string>
+    <string name="app_name">View</string>
+    <string name="title_todo">Todo</string>
+    <string name="title_calendar">Calendar</string>
+    <string name="title_journal">Journal</string>
+
+    <!-- Categories Array -->
+    <string-array name="category_array">
+        <item>WORK</item>
+        <item>UNIVERSITY</item>
+        <item>HOUSEHOLD</item>
+    </string-array>
+
 
     <!-- Priorities Array -->
     <string-array name="priorities_array">
@@ -15,5 +26,5 @@
     <string name="priority_urgent_not_important">Dringend, doch nicht Wichtig</string>
     <string name="priority_not_urgent_not_important">Weder Wichtig noch Dringend</string>
     <string name="priority_unknown">Unbekannte Prioriät</string>
-</resources>
 
+</resources>

@@ -1,133 +1,24 @@
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/matchingToTeal">
+    android:layout_height="match_parent">
 
-    <!-- Farbiger Header mit Titel --><!-- Hintergrundfarbe -->
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/nav_host_fragment"
+        android:name="androidx.navigation.fragment.NavHostFragment"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:defaultNavHost="true"
+        app:layout_constraintBottom_toTopOf="@id/nav_view"
+        app:layout_constraintTop_toTopOf="parent"
+        app:navGraph="@navigation/mobile_navigation" />
 
-    <!-- Wichtig & Dringend -->
-
-    <TextView
-        android:id="@+id/textViewHeader"
-        android:layout_width="380dp"
-        android:layout_height="73dp"
-        android:layout_marginTop="4dp"
-        android:background="@drawable/rounded_corner"
-        android:gravity="center"
-        android:text="Accountability Reminder"
-        android:textColor="#795548"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.483"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/textViewUrgentImportant"
-        android:layout_width="wrap_content"
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/nav_view"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="52dp"
-        android:layout_marginTop="8dp"
-        android:text="Wichtig &amp; Dringend"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textViewHeader" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewUrgentImportant"
-        android:layout_width="0dp"
-        android:layout_height="100dp"
-        app:layout_constraintTop_toBottomOf="@id/textViewUrgentImportant"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_margin="8dp" />
-
-    <!-- Wichtig & Nicht Dringend -->
-
-    <TextView
-        android:id="@+id/textViewNotUrgentImportant"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="52dp"
-        android:layout_marginTop="12dp"
-        android:text="Wichtig &amp; Nicht Dringend"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/recyclerViewUrgentImportant" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewNotUrgentImportant"
-        android:layout_width="0dp"
-        android:layout_height="100dp"
-        app:layout_constraintTop_toBottomOf="@id/textViewNotUrgentImportant"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_margin="8dp" />
-
-    <!-- Nicht Wichtig & Dringend -->
-
-    <TextView
-        android:id="@+id/textViewUrgentNotImportant"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="52dp"
-        android:layout_marginTop="16dp"
-        android:text="Nicht Wichtig &amp; Dringend"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/recyclerViewNotUrgentImportant" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewUrgentNotImportant"
-        android:layout_width="0dp"
-        android:layout_height="100dp"
-        app:layout_constraintTop_toBottomOf="@id/textViewUrgentNotImportant"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_margin="8dp" />
-
-    <!-- Nicht Wichtig & Nicht Dringend -->
-
-    <TextView
-        android:id="@+id/textViewNotUrgentNotImportant"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="52dp"
-        android:layout_marginTop="16dp"
-        android:text="Nicht Wichtig &amp; Nicht Dringend"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/recyclerViewUrgentNotImportant" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewNotUrgentNotImportant"
-        android:layout_width="0dp"
-        android:layout_height="100dp"
-        app:layout_constraintTop_toBottomOf="@id/textViewNotUrgentNotImportant"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_margin="8dp" />
-
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAddTask"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:layout_marginEnd="72dp"
-        android:layout_marginBottom="72dp"
-        android:contentDescription="Add Task"
-        android:src="@drawable/add_folder_icon"
-        app:backgroundTint="#FFC107"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:menu="@menu/bottom_nav_menu" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

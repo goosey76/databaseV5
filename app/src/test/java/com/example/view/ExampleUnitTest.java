@@ -1,4 +1,4 @@
-package com.example.datenbankv5;
+package com.example.view;
 
 import org.junit.Test;
 

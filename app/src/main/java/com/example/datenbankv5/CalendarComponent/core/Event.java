@@ -1,64 +1,68 @@
 package com.example.datenbankv5.CalendarComponent.core;
 
+import android.os.Build;
+
+import androidx.annotation.RequiresApi;
+
 import com.example.datenbankv5.ToDoComponent.core.Category;
 
 import java.time.Duration;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class Event {
 
-    private String Event_ID;
-
+    private String eventId;
     private String title;
-
     private Mood mood;
-
     private Category category;
-
-    private Date beginnDate; //mit Datum und Uhrzeit
-
-    private Date endDate; //mit Datum und Uhrzeit
-
-    private Duration traveltime;
-
-    private String locatation;
-
-    private RepetitionType repetiton;
-
+    private LocalDateTime beginDate; // Mit Datum und Uhrzeit
+    private LocalDateTime endDate; // Mit Datum und Uhrzeit
+    private Duration travelTime;
+    private String location;
+    private RepetitionType repetition;
     private String description;
-
     private List<String> members;
 
-    public Event(String event_ID, String title, Mood mood,
-                 Category category, Date beginnDate, Date endDate,
-                 Duration traveltime, String locatation, RepetitionType repetiton,
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public Event(String eventID, String title, Mood mood,
+                 Category category, LocalDateTime beginDate, LocalDateTime endDate,
+                 Duration travelTime, String location, RepetitionType repetition,
                  String description, List<String> members) throws EventErrorException {
-        if (title != null) {
-            if (beginnDate !=null && endDate != null) {
-                Event_ID = event_ID;
-                this.title = title;
-                this.mood = mood;
-                this.category = category;
-                this.beginnDate = beginnDate;
-                this.endDate = endDate;
-                this.traveltime = traveltime;
-                this.locatation = locatation;
-                this.repetiton = repetiton;
-                this.description = description;
-                this.members = members;
-            } else {
-                throw new EventErrorException("Kein Start- oder Enddatum angegeben!");
-            }
-        } else {
+
+        if (title == null) {
             throw new EventErrorException("Title ist null!");
         }
+
+        if (beginDate == null || endDate == null) {
+            throw new EventErrorException("Kein Start- oder Enddatum angegeben!");
+        }
+
+        if (endDate.isBefore(beginDate)) {
+            throw new EventErrorException("Enddatum liegt vor dem Startdatum!");
+        }
+
+        this.eventId = eventID;
+        this.title = title;
+        this.mood = mood;
+        this.category = category;
+        this.beginDate = beginDate;
+        this.endDate = endDate;
+        this.travelTime = travelTime;
+        this.location = location;
+        this.repetition = repetition;
+        this.description = description;
+        this.members = members;
     }
 
-    //Setter und Getter
+    // Getter und Setter (falls benötigt)
 
-    public String getEvent_ID() {
-        return Event_ID;
+    public String getEventId() {
+        return eventId;
+    }
+
+    public void setEventId(String eventID) {
+        this.eventId = eventID;
     }
 
     public String getTitle() {
@@ -85,44 +89,44 @@ public class Event {
         this.category = category;
     }
 
-    public Date getBeginnDate() {
-        return beginnDate;
+    public LocalDateTime getBeginDate() {
+        return beginDate;
     }
 
-    public void setBeginnDate(Date beginnDate) {
-        this.beginnDate = beginnDate;
+    public void setBeginDate(LocalDateTime beginDate) {
+        this.beginDate = beginDate;
     }
 
-    public Date getEndDate() {
+    public LocalDateTime getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Date endDate) {
+    public void setEndDate(LocalDateTime endDate) {
         this.endDate = endDate;
     }
 
-    public Duration getTraveltime() {
-        return traveltime;
+    public Duration getTravelTime() {
+        return travelTime;
     }
 
-    public void setTraveltime(Duration traveltime) {
-        this.traveltime = traveltime;
+    public void setTravelTime(Duration travelTime) {
+        this.travelTime = travelTime;
     }
 
-    public String getLocatation() {
-        return locatation;
+    public String getLocation() {
+        return location;
     }
 
-    public void setLocatation(String locatation) {
-        this.locatation = locatation;
+    public void setLocation(String location) {
+        this.location = location;
     }
 
-    public RepetitionType getRepetiton() {
-        return repetiton;
+    public RepetitionType getRepetition() {
+        return repetition;
     }
 
-    public void setRepetiton(RepetitionType repetiton) {
-        this.repetiton = repetiton;
+    public void setRepetition(RepetitionType repetition) {
+        this.repetition = repetition;
     }
 
     public String getDescription() {
@@ -139,5 +143,27 @@ public class Event {
 
     public void setMembers(List<String> members) {
         this.members = members;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    @Override
+    public String toString() {
+
+        if (travelTime== null) {
+            travelTime = Duration.ofMinutes(0);
+        }
+        return "Event{" +
+                "eventId='" + eventId + '\'' +
+                ", title='" + title + '\'' +
+                ", mood='" + mood + '\'' +
+                ", category='" + category + '\'' +
+                ", beginDate='" + beginDate + '\'' +
+                ", endDate='" + endDate + '\'' +
+                ", travelTime='" + travelTime.toMinutes() + '\'' +
+                ", location='" + location + '\'' +
+                ", repetition='" + repetition + '\'' +
+                ", description='" + description + '\'' +
+                ", members=" + members +
+                '}';
     }
 }

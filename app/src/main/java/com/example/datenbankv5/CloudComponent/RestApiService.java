@@ -2,17 +2,38 @@ package com.example.datenbankv5.CloudComponent;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.util.Log;
 
+import androidx.annotation.RequiresApi;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.datenbankv5.CalendarComponent.core.Event;
+import com.example.datenbankv5.CloudComponent.ParsingAndSerializer.DurationDeserializer;
+import com.example.datenbankv5.CloudComponent.ParsingAndSerializer.DurationSerializer;
+import com.example.datenbankv5.CloudComponent.ParsingAndSerializer.LocalDateTimeDeserializer;
+import com.example.datenbankv5.CloudComponent.ParsingAndSerializer.LocalDateTimeSerializer;
+import com.example.datenbankv5.CloudComponent.ParsingAndSerializer.ResponseParser;
 import com.example.datenbankv5.ToDoComponent.core.Task;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -32,13 +53,14 @@ import retrofit2.http.Query;
  * Es umfasst die Generierung einer UUID, das Hinzufügen, Aktualisieren und Löschen
  * von Aufgaben und Kalenderereignissen sowie das Teilen und Abrufen von Ereignissen.
  */
+@RequiresApi(api = Build.VERSION_CODES.O)
 public class RestApiService {
 
     /**
      * Basis-URL der API. Diese URL dient als Einstiegspunkt für alle Endpunkte.
      */
-    private static final String BASE_URL = "http://10.0.2.2:8080/api/";
-
+    //private static final String BASE_URL = "https://141.144.243.26:25565/api/";
+    private static final String BASE_URL = "http://192.168.178.26:8080/api/";
 
     /**
      * Name der SharedPreferences, in denen die UUID gespeichert wird.
@@ -49,6 +71,11 @@ public class RestApiService {
      */
     private static final String PREF_UUID_KEY = "UUID";
 
+
+    public static String getUUid (Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return sharedPreferences.getString(PREF_UUID_KEY, null);
+    }
 
     //Hilfsmethode zum Testen der UUID Registrierung im Backend
     // Methode zum Löschen der gespeicherten UUID
@@ -69,21 +96,89 @@ public class RestApiService {
         }
     }
 
+    /*
+    // Schritt 1: Erstelle ein benutzerdefiniertes TrustManager
+    static TrustManager[] trustManagers = new TrustManager[]{
+            new X509TrustManager() {
+                public X509Certificate[] getAcceptedIssuers() {
+                    return null; // Es werden keine speziellen Zertifikate akzeptiert
+                }
 
+                public void checkClientTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+                    // Hier könnte eine detaillierte Validierung des Client-Zertifikats erfolgen
+                }
+
+                public void checkServerTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+                    // Zertifikatprüfung
+                    for (X509Certificate cert : certs) {
+                        cert.checkValidity();  // Überprüft, ob das Zertifikat gültig ist
+                        // Weitere Prüfungen können hier hinzugefügt werden, z. B. auf den Aussteller
+                    }
+                }
+            }
+    };
+
+    // Schritt 2: SSLContext und OkHttpClient erstellen
+    public static OkHttpClient createOkHttpClient() throws NoSuchAlgorithmException, KeyManagementException {
+        // SSLContext mit unserem benutzerdefinierten TrustManager
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, new TrustManager[]{new X509TrustManager() {
+            public X509Certificate[] getAcceptedIssuers() {
+                return null; // No accepted issuers
+            }
+
+            public void checkClientTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+            }
+
+            public void checkServerTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+                for (X509Certificate cert : certs) {
+                    cert.checkValidity();
+                }
+            }
+        }}, new SecureRandom());
+
+        // Erstelle OkHttpClient mit dem konfigurierten SSLContext
+        OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
+        httpClient.sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) trustManagers[0]);
+        httpClient.hostnameVerifier((hostname, session) -> true); // Überprüfung des Hostnamens deaktivieren (optional)
+
+        return httpClient.build();
+    }
+
+    */
 
     /**
      * Retrofit-Instanz für die Erstellung von API-Anfragen.
      */
-    private static final Retrofit retrofitInstance = new Retrofit.Builder()
+    public static final Retrofit retrofitInstance= new Retrofit.Builder()
             .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create()) // JSON-Converter
+            //.client(createOkHttpClient())
+            .addConverterFactory(createGsonConverterFactory()) // JSON-Converter
             .build();
+
+
+    /**
+     * Erstellt und gibt den benutzerdefinierten Gson-Converter zurück, der den LocalDateTimeSerializer beinhaltet.
+     */
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private static GsonConverterFactory createGsonConverterFactory() {
+            // Erstelle einen GsonBuilder und registriere den LocalDateTimeSerializer
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeSerializer()) // Serializer für LocalDateTime
+                    .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeDeserializer()) //Deserializer für LocalDateTime
+                    .registerTypeAdapter(Duration.class, new DurationSerializer()) // Duration serialisieren
+                    //.registerTypeAdapter(Duration.class, new DurationDeserializer()) // Duration deserialisieren
+                    .create();
+        // Gebe den GsonConverterFactory mit dem benutzerdefinierten Gson zurück
+        return GsonConverterFactory.create(gson);
+    }
+
 
 
     /**
      * Definiert die Endpunkte der REST-API.
      */
-    private interface ApiService {
+    public interface ApiService {
 
     //UUID GENERATOR
         @GET("generate") // Endpunkt: BASE_URL/generate
@@ -100,7 +195,7 @@ public class RestApiService {
         Call<ResponseBody> sendUpdatedTodo(@Body Task task, @Query("param") String uuid); //PUT-Anfrage, um existierenden ToDos zu aktualisieren
 
         @DELETE("tasks") // Endpunkt: BASE_URL/tasks
-        Call<ResponseBody> deleteToDoInCloud(@Body String idOfDeletedTask, @Query("param") String uuid); //DELETE-Anfrage, um ToDos aus der Cloud zu löschen, basierend auf ihrer ID
+        Call<ResponseBody> deleteToDoInCloud(@Query("idOfDeletedTask") String idOfDeletedTask, @Query("paramUuid") String uuid); //DELETE-Anfrage, um ToDos aus der Cloud zu löschen, basierend auf ihrer ID
 
     //CALENDAR API
         @POST("calendar") // Endpunkt: BASE_URL/calendar
@@ -113,14 +208,14 @@ public class RestApiService {
         Call<ResponseBody> sendUpdatedEvent(@Body Event event, @Query("param") String uuid); //PUT-Anfrage, um existierende Events zu aktualisieren
 
         @DELETE("calendar") // Endpunkt: BASE_URL/calendar
-        Call<ResponseBody> deleteEventInCloud(@Body String idOfDeletedEvent, @Query("param") String uuid); //DELETE-Anfrage, um ToDos aus der Cloud zu löschen, basierend auf ihrer ID
+        Call<ResponseBody> deleteEventInCloud(@Query("idOfDeletedEvent") String idOfDeletedEvent, @Query("param") String uuid); //DELETE-Anfrage, um ToDos aus der Cloud zu löschen, basierend auf ihrer ID
 
     //SHARE API
         @POST("share") // Endpunkt: BASE_URL/share
         Call<ResponseBody> sendEventToShare(@Body Event event); //POST-Anfrage, um Event in öffentliche Datenbank zum teilen zu speichern
             //Implementierung: Check
         @GET("share") // Endpunkt: BASE_URL/share
-        Call<ResponseBody> getSharedEvent(@Body String idOfSharedEvent); //GET-Anfrage, um Event aus der öffentlichen Datenbank zu holen, basierend auf der ID des Events
+        Call<ResponseBody> getSharedEvent(@Query("param") String idOfSharedEvent); //GET-Anfrage, um Event aus der öffentlichen Datenbank zu holen, basierend auf der ID des Events
 
     }
 
@@ -306,10 +401,10 @@ public class RestApiService {
      * Löscht eine Task aus der Cloud
      *
      * @param context Der Kontext, der für den Zugriff auf SharedPreferences benötigt wird.
-     * @param taskToDelete Die zu löschende Task.
+     * @param idOfDeletedToDo Die zu löschende Task.
      * @throws MissingUUIDException Wenn keine UUID vorhanden ist.
      */
-    public static void deleteToDoInCloud(Context context, Task taskToDelete) throws MissingUUIDException {
+    public static void deleteToDoInCloud(Context context, String idOfDeletedToDo) throws MissingUUIDException {
         SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         String uuid = sharedPreferences.getString(PREF_UUID_KEY, null);
 
@@ -319,7 +414,7 @@ public class RestApiService {
         }
 
         ApiService apiService = retrofitInstance.create(ApiService.class);
-        Call<ResponseBody> call = apiService.deleteToDoInCloud(taskToDelete.getId(), uuid);
+        Call<ResponseBody> call = apiService.deleteToDoInCloud(idOfDeletedToDo, uuid);
 
         call.enqueue(new Callback<ResponseBody>() {
             @Override
@@ -488,7 +583,7 @@ public class RestApiService {
         }
 
         ApiService apiService = retrofitInstance.create(ApiService.class);
-        Call<ResponseBody> call = apiService.deleteEventInCloud(eventToDelete.getEvent_ID(), uuid);
+        Call<ResponseBody> call = apiService.deleteEventInCloud(eventToDelete.getEventId(), uuid);
 
         call.enqueue(new Callback<ResponseBody>() {
             @Override
@@ -519,7 +614,9 @@ public class RestApiService {
      * @param eventToShare Das Event, welches geteilt werden soll
      */
     public static void sendEventToShare(Event eventToShare) {
+
         ApiService apiService = retrofitInstance.create(ApiService.class);
+        Log.d("EventToSend", "Event ID: " + eventToShare.getEventId());
         Call<ResponseBody> call = apiService.sendEventToShare(eventToShare);
 
         call.enqueue(new Callback<ResponseBody>() {

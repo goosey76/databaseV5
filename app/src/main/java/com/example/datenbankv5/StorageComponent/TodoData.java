@@ -23,27 +23,53 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
+
+/**
+ * Diese Klasse bietet eine SQLite-Datenbank-Implementierung zur Verwaltung von Aufgaben.
+ * Sie stellt CRUD-Operationen, die Möglichkeit zum Export der Datenbank und die Integration mit Cloud-Diensten bereit.
+ */
 public class TodoData extends SQLiteOpenHelper {
 
+    /**
+     * Name der Datenbankdatei.
+     */
     private static final String DATABASE_NAME = "tasks.db";
-    private static final int DATABASE_VERSION = 9;
-    private static final String TABLE_NAME = "todos";
-    private final Context context;
-    private String databasePath;
 
-    // Die Tabelle
+    /**
+     * Version der Datenbank.
+     */
+    private static final int DATABASE_VERSION = 9;
+
+    /**
+     * Name der Tabelle zur Speicherung von Aufgaben.
+     */
+    private static final String TABLE_NAME = "todos";
+
+    // Spaltennamen der Tabelle
     private static final String COLUMN_ID = "_id";
     private static final String COLUMN_TASK = "task";
     private static final String COLUMN_CATEGORY = "category";
     private static final String COLUMN_DESCRIPTION = "description";
     private static final String COLUMN_PRIORITY = "priority";
 
+    private final Context context;
+    private String databasePath;
+
+    /**
+     * Konstruktor für TodoData.
+     *
+     * @param context Der Anwendungskontext.
+     */
     public TodoData(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         this.context = context;
         this.databasePath = context.getDatabasePath(DATABASE_NAME).getAbsolutePath();
     }
 
+
+    /**
+     * Exportiert die Datenbank in eine externe Datei.
+     */
     public void exportDatabase() {
         try {
             File currentDB = new File(databasePath);
@@ -61,6 +87,12 @@ public class TodoData extends SQLiteOpenHelper {
             Log.e("DatabaseHelper", "Error exporting database", e);
         }
     }
+
+    /**
+     * Erstellt die Datenbanktabelle, falls sie nicht existiert.
+     *
+     * @param db Die SQLite-Datenbankinstanz.
+     */
     @Override
     public void onCreate(SQLiteDatabase db) {
         String createTable = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" +
@@ -73,6 +105,10 @@ public class TodoData extends SQLiteOpenHelper {
         Log.d("DatabaseHelper", "Tabelle erstellt: " + TABLE_NAME);
     }
 
+
+    /**
+     * Löscht alle Aufgaben aus der Datenbank und entfernt sie auch aus der Cloud.
+     */
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void deleteAllTasks() {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -121,6 +157,11 @@ public class TodoData extends SQLiteOpenHelper {
     }
 
 
+    /**
+     * Generiert die nächste eindeutige Aufgaben-ID basierend auf der aktuellen maximalen ID.
+     *
+     * @return Die nächste eindeutige ID als String.
+     */
     public String getNextId() {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = null;
@@ -142,6 +183,11 @@ public class TodoData extends SQLiteOpenHelper {
         }
     }
 
+    /**
+     * Fügt eine Aufgabe in die Datenbank ein und synchronisiert sie mit der Cloud.
+     *
+     * @param taskToStore Die einzufügende Aufgabe.
+     */
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void insertTask(Task taskToStore) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -171,6 +217,11 @@ public class TodoData extends SQLiteOpenHelper {
         }
     }
 
+    /**
+     * Ruft alle Aufgaben aus der Datenbank ab.
+     *
+     * @return Eine Liste der in der Datenbank gespeicherten Aufgaben.
+     */
     public List<Task> getAllTasks() {
         List<Task> taskList = new ArrayList<>(); // List to hold tasks
         SQLiteDatabase db = this.getReadableDatabase();
@@ -222,6 +273,13 @@ public class TodoData extends SQLiteOpenHelper {
         return taskList; // Return the list of tasks
     }
 
+    /**
+     * Aktualisiert die Datenbank auf eine neue Version, indem die vorhandene Tabelle gelöscht und neu erstellt wird.
+     *
+     * @param db         Die SQLite-Datenbankinstanz.
+     * @param oldVersion Die alte Versionsnummer der Datenbank.
+     * @param newVersion Die neue Versionsnummer der Datenbank.
+     */
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion < newVersion) {

@@ -20,10 +20,20 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -49,8 +59,8 @@ public class RestApiService {
     /**
      * Basis-URL der API. Diese URL dient als Einstiegspunkt für alle Endpunkte.
      */
+    //private static final String BASE_URL = "https://141.144.243.26:25565/api/";
     private static final String BASE_URL = "http://10.0.2.2:8080/api/";
-
 
     /**
      * Name der SharedPreferences, in denen die UUID gespeichert wird.
@@ -86,13 +96,66 @@ public class RestApiService {
         }
     }
 
+    /*
+    // Schritt 1: Erstelle ein benutzerdefiniertes TrustManager
+    static TrustManager[] trustManagers = new TrustManager[]{
+            new X509TrustManager() {
+                public X509Certificate[] getAcceptedIssuers() {
+                    return null; // Es werden keine speziellen Zertifikate akzeptiert
+                }
+
+                public void checkClientTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+                    // Hier könnte eine detaillierte Validierung des Client-Zertifikats erfolgen
+                }
+
+                public void checkServerTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+                    // Zertifikatprüfung
+                    for (X509Certificate cert : certs) {
+                        cert.checkValidity();  // Überprüft, ob das Zertifikat gültig ist
+                        // Weitere Prüfungen können hier hinzugefügt werden, z. B. auf den Aussteller
+                    }
+                }
+            }
+    };
+
+    // Schritt 2: SSLContext und OkHttpClient erstellen
+    public static OkHttpClient createOkHttpClient() throws NoSuchAlgorithmException, KeyManagementException {
+        // SSLContext mit unserem benutzerdefinierten TrustManager
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, new TrustManager[]{new X509TrustManager() {
+            public X509Certificate[] getAcceptedIssuers() {
+                return null; // No accepted issuers
+            }
+
+            public void checkClientTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+            }
+
+            public void checkServerTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+                for (X509Certificate cert : certs) {
+                    cert.checkValidity();
+                }
+            }
+        }}, new SecureRandom());
+
+        // Erstelle OkHttpClient mit dem konfigurierten SSLContext
+        OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
+        httpClient.sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) trustManagers[0]);
+        httpClient.hostnameVerifier((hostname, session) -> true); // Überprüfung des Hostnamens deaktivieren (optional)
+
+        return httpClient.build();
+    }
+
+    */
+
     /**
      * Retrofit-Instanz für die Erstellung von API-Anfragen.
      */
-    public static final Retrofit retrofitInstance = new Retrofit.Builder()
+    public static final Retrofit retrofitInstance= new Retrofit.Builder()
             .baseUrl(BASE_URL)
+            //.client(createOkHttpClient())
             .addConverterFactory(createGsonConverterFactory()) // JSON-Converter
             .build();
+
 
     /**
      * Erstellt und gibt den benutzerdefinierten Gson-Converter zurück, der den LocalDateTimeSerializer beinhaltet.

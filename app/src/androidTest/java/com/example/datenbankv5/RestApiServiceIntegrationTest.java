@@ -65,7 +65,7 @@ public class RestApiServiceIntegrationTest {
 
         // UUID generieren und direkt speichern
        //generateAndSetUuid();
-       useSameUUid("8f1aecb3-2505-4b01-8fb4-903d91763b80");
+       useSameUUid("2a69dfb7-642f-49c8-8a48-2b074cc23235");
     }
 
     private void useSameUUid(String uuid) throws InterruptedException {
@@ -322,7 +322,7 @@ public class RestApiServiceIntegrationTest {
         RestApiService.sendEventToShare(event1);
 
         // Warten auf den Abschluss des asynchronen Aufrufs
-        latch.await(5, TimeUnit.SECONDS);
+        latch.await(10, TimeUnit.SECONDS);
     }
 
     @Test

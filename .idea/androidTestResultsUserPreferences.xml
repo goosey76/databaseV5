@@ -50,6 +50,7 @@
                   <entry key="Duration" value="90" />
                   <entry key="Pixel_7_API_Baklava" value="120" />
                   <entry key="Tests" value="360" />
+                  <entry key="samsung SM-G991B" value="120" />
                 </map>
               </option>
             </AndroidTestResultsTableState>
@@ -115,6 +116,7 @@
                   <entry key="Duration" value="90" />
                   <entry key="Pixel_7_API_Baklava" value="120" />
                   <entry key="Tests" value="360" />
+                  <entry key="samsung SM-G991B" value="120" />
                 </map>
               </option>
             </AndroidTestResultsTableState>

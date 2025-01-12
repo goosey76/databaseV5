@@ -23,6 +23,7 @@ public class BluetoothConnectionService {
     private OutputStream outputStream;
     private boolean isConnected = false;
 
+
     private BluetoothConnectionService() {}
 
     public static BluetoothConnectionService getInstance() {

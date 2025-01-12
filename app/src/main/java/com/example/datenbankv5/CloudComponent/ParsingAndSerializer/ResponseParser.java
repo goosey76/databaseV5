@@ -21,8 +21,19 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Diese Klasse enthält Methoden zum Parsen von JSON-Antworten und Umwandeln in Java-Objekte.
+ * Sie unterstützt das Parsen von Events und Aufgaben sowie deren Listen.
+ */
 public class ResponseParser {
 
+    /**
+     * Parst eine einzelne Event-Antwort von einem JSON-String in ein {@link Event}-Objekt.
+     *
+     * @param jsonResponse Der JSON-String, der die Event-Daten enthält.
+     * @return Ein {@link Event}-Objekt, das die extrahierten Daten enthält.
+     * @throws EventErrorException Wenn beim Parsen der Daten ein Fehler auftritt.
+     */
     public static Event parseEvent(String jsonResponse) throws EventErrorException {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -94,6 +105,13 @@ public class ResponseParser {
         }
     }
 
+    /**
+     * Parst eine Liste von Events aus einem JSON-String.
+     *
+     * @param jsonResponse Der JSON-String, der die Event-Liste enthält.
+     * @return Eine Liste von {@link Event}-Objekten.
+     * @throws EventErrorException Wenn beim Parsen der Liste ein Fehler auftritt.
+     */
     public static List<Event> parseEventList(String jsonResponse) throws EventErrorException {
         List<Event> events = new ArrayList<>();
         try {
@@ -171,6 +189,13 @@ public class ResponseParser {
         return events;
     }
 
+    /**
+     * Parst eine Liste von Tasks aus einem JSON-String.
+     *
+     * @param jsonResponse Der JSON-String, der die Task-Liste enthält.
+     * @return Eine Liste von {@link Task}-Objekten.
+     * @throws Exception Wenn beim Parsen der Liste ein Fehler auftritt.
+     */
     public static List<Task> parseTaskList(String jsonResponse) throws Exception {
         List<Task> tasks = new ArrayList<>();
 

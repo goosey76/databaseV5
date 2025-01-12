@@ -194,7 +194,7 @@ public class RestApiServiceIntegrationTest {
 
         // Task senden
 
-        RestApiService.deleteToDoInCloud(context, task4);
+        RestApiService.deleteToDoInCloud(context, task4.getId());
 
         // Warten auf den Abschluss des asynchronen Aufrufs
         latch.await(5, TimeUnit.SECONDS);

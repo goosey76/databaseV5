@@ -5,7 +5,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Build;
 import android.util.Log;
+
+import androidx.annotation.RequiresApi;
 
 import com.example.datenbankv5.CloudComponent.MissingUUIDException;
 import com.example.datenbankv5.ToDoComponent.core.Category;
@@ -70,17 +73,53 @@ public class TodoData extends SQLiteOpenHelper {
         Log.d("DatabaseHelper", "Tabelle erstellt: " + TABLE_NAME);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public void deleteAllTasks() {
         SQLiteDatabase db = this.getWritableDatabase();
+        List<String> columnIds = new ArrayList<>();
+
         try {
+            // Abfrage, um alle COLUMN_IDs zu erhalten
+            Cursor cursor = db.query(TABLE_NAME, new String[]{COLUMN_ID}, null, null, null, null, null);
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    columnIds.add(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ID)));
+                }
+                cursor.close();
+            }
+
+            // Logge die COLUMN_IDs (optional, zu Debug-Zwecken)
+            Log.d("DatabaseHelper", "Saved COLUMN_IDs: " + columnIds);
+
+            // Lösche alle Einträge in der Tabelle
             db.delete(TABLE_NAME, null, null);
             Log.d("DatabaseHelper", "All tasks deleted");
+
+            new Thread(() -> {
+                for (int a = 0; a < columnIds.size(); a++) {
+                    // Lösche alle Einträge in der Cloud
+                    try {
+                        RestApiService.deleteToDoInCloud(context, columnIds.get(a));
+                    } catch (MissingUUIDException e) {
+                        Log.e("DatabaseHelper", "Error deleting task in cloud", e);
+                    }
+
+                    // Timeout von 1 Sekunde
+                    try {
+                        Thread.sleep(3000); // 1000 Millisekunden = 1 Sekunde
+                    } catch (InterruptedException e) {
+                        Log.e("Timeout", "Thread wurde unterbrochen", e);
+                    }
+                }
+            }).start();
+
         } catch (Exception e) {
             Log.e("DatabaseHelper", "Error deleting tasks", e);
         } finally {
             db.close();
         }
     }
+
 
     public String getNextId() {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -103,6 +142,7 @@ public class TodoData extends SQLiteOpenHelper {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public void insertTask(Task taskToStore) {
         SQLiteDatabase db = this.getWritableDatabase();
         try {
@@ -123,7 +163,7 @@ public class TodoData extends SQLiteOpenHelper {
                     //Speichert in Cloud ab
                     RestApiService.sendNewToDo(context, taskToStore);
                 } catch (MissingUUIDException e) {
-                    //TODO behandelung, wenn keine UUID vorhaben ist
+                    Log.e("DatabaseHelper", "Error saving task in cloud", e);
                 }
             }
         } finally {

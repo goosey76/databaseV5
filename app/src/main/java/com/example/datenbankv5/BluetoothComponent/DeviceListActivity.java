@@ -3,6 +3,7 @@ package com.example.datenbankv5.BluetoothComponent;
 
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
@@ -14,6 +15,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+
+import com.example.datenbankv5.R;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -43,6 +46,7 @@ public class DeviceListActivity extends AppCompatActivity {
         });
     }
 
+    @SuppressLint("MissingPermission")
     private void showPairedDevices() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(this, "Bluetooth permission required", Toast.LENGTH_SHORT).show();

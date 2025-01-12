@@ -60,7 +60,7 @@ public class RestApiService {
      * Basis-URL der API. Diese URL dient als Einstiegspunkt für alle Endpunkte.
      */
     //private static final String BASE_URL = "https://141.144.243.26:25565/api/";
-    private static final String BASE_URL = "http://10.0.2.2:8080/api/";
+    private static final String BASE_URL = "http://192.168.178.26:8080/api/";
 
     /**
      * Name der SharedPreferences, in denen die UUID gespeichert wird.
@@ -401,10 +401,10 @@ public class RestApiService {
      * Löscht eine Task aus der Cloud
      *
      * @param context Der Kontext, der für den Zugriff auf SharedPreferences benötigt wird.
-     * @param taskToDelete Die zu löschende Task.
+     * @param idOfDeletedToDo Die zu löschende Task.
      * @throws MissingUUIDException Wenn keine UUID vorhanden ist.
      */
-    public static void deleteToDoInCloud(Context context, Task taskToDelete) throws MissingUUIDException {
+    public static void deleteToDoInCloud(Context context, String idOfDeletedToDo) throws MissingUUIDException {
         SharedPreferences sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         String uuid = sharedPreferences.getString(PREF_UUID_KEY, null);
 
@@ -414,7 +414,7 @@ public class RestApiService {
         }
 
         ApiService apiService = retrofitInstance.create(ApiService.class);
-        Call<ResponseBody> call = apiService.deleteToDoInCloud(taskToDelete.getId(), uuid);
+        Call<ResponseBody> call = apiService.deleteToDoInCloud(idOfDeletedToDo, uuid);
 
         call.enqueue(new Callback<ResponseBody>() {
             @Override
